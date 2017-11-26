@@ -7,12 +7,12 @@ import math
 RANDOM_SEED = 29
 SIM_TIME = 1000000
 MU = 1
-
+# BUFFER_SIZE = 10
 
 
 """ Queue system  """		
 class server_queue:
-	def __init__(self, env, arrival_rate, Packet_Delay, Server_Idle_Periods):
+	def __init__(self, env, arrival_rate, Packet_Delay, Server_Idle_Periods, buffer_size):
 		self.server = simpy.Resource(env, capacity = 1)
 		self.env = env
 		self.queue_len = 0
@@ -23,6 +23,11 @@ class server_queue:
 		self.arrival_rate = arrival_rate
 		self.Packet_Delay = Packet_Delay
 		self.Server_Idle_Periods = Server_Idle_Periods
+
+		#######
+		self.processedPktNumber = 0
+		self.droppedPktNumber = 0
+		self.buffer_size = buffer_size
 		
 	def process_packet(self, env, packet):
 		with self.server.request() as req:
@@ -36,6 +41,7 @@ class server_queue:
 			if self.queue_len == 0:
 				self.flag_processing = 0
 				self.start_idle_time = env.now
+			
 				
 	def packets_arrival(self, env):
 		# packet arrivals 
@@ -55,8 +61,15 @@ class server_queue:
 				idle_period = env.now - self.start_idle_time
 				self.Server_Idle_Periods.addNumber(idle_period)
 				#print("Idle period of length {0} ended".format(idle_period))
-			self.queue_len += 1
-			env.process(self.process_packet(env, new_packet))
+			
+			####
+			if self.queue_len != self.buffer_size:				
+				self.processedPktNumber += 1		
+				self.queue_len += 1
+				env.process(self.process_packet(env, new_packet))
+			else:
+				self.droppedPktNumber += 1
+
 	
 
 """ Packet class """			
@@ -105,27 +118,41 @@ class StatObject:
         sum = sum/(len(self.dataset) - 1)
         return math.sqrt(sum)
 
+    def processedPktNumber(self):
+    	return self.processedPktNumber
+
+    def droppedPktNumber(self):
+    	return self.droppedPktNumber
+
 
 def main():
 	print("Simple queue system model:mu = {0}".format(MU))
 	print ("{0:<9} {1:<9} {2:<9} {3:<9} {4:<9} {5:<9} {6:<9} {7:<9}".format(
-        "Lambda", "Count", "Min", "Max", "Mean", "Median", "Sd", "Utilization"))
+        "Lambda", "Count", "Min", "Max", "Mean", "Median", "Sd", "Utilization", "Processed", "Dropped", "Probability"))
 	random.seed(RANDOM_SEED)
-	for arrival_rate in [0.2,0.4,0.6,0.8,0.9,0.99]:		#[0.1, 0.2, 0.5,  0.9]:
-		env = simpy.Environment()
-		Packet_Delay = StatObject()
-		Server_Idle_Periods = StatObject()
-		router = server_queue(env, arrival_rate, Packet_Delay, Server_Idle_Periods)
-		env.process(router.packets_arrival(env))
-		env.run(until=SIM_TIME)
-		print ("{0:<9.3f} {1:<9} {2:<9.3f} {3:<9.3f} {4:<9.3f} {5:<9.3f} {6:<9.3f} {7:<9.3f}".format(
-			round(arrival_rate, 3),
-			int(Packet_Delay.count()),
-			round(Packet_Delay.minimum(), 3),
-			round(Packet_Delay.maximum(), 3),
-			round(Packet_Delay.mean(), 3),
-			round(Packet_Delay.median(), 3),
-			round(Packet_Delay.standarddeviation(), 3),
-			round(1-Server_Idle_Periods.sum()/SIM_TIME, 3)))
+
+	for buffer_size in [10]:		#, 50]:
+		for arrival_rate in [0.2,0.4,0.6,0.8,0.9,0.99]:		#[0.1, 0.2, 0.5,  0.9]:
+			env = simpy.Environment()
+			Packet_Delay = StatObject()
+			Server_Idle_Periods = StatObject()
+			router = server_queue(env, arrival_rate, Packet_Delay, Server_Idle_Periods, buffer_size)
+			env.process(router.packets_arrival(env))
+			env.run(until=SIM_TIME)
+
+			pktLossProbability = router.droppedPktNumber/router.packet_number
+
+			print ("{0:<9.3f} {1:<9} {2:<9.3f} {3:<9.3f} {4:<9.3f} {5:<9.3f} {6:<9.3f} {7:<9.3f} {1:<9} {1:<9}".format(
+				round(arrival_rate, 3),
+				int(Packet_Delay.count()),
+				round(Packet_Delay.minimum(), 3),
+				round(Packet_Delay.maximum(), 3),
+				round(Packet_Delay.mean(), 3),
+				round(Packet_Delay.median(), 3),
+				round(Packet_Delay.standarddeviation(), 3),
+				round(1-Server_Idle_Periods.sum()/SIM_TIME, 3)),
+				router.processedPktNumber,
+				router.droppedPktNumber,
+				pktLossProbability)
 	
 if __name__ == '__main__': main()
