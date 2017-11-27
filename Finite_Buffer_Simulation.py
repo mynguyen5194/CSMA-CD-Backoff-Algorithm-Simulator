@@ -24,7 +24,7 @@ class server_queue:
 		self.Packet_Delay = Packet_Delay
 		self.Server_Idle_Periods = Server_Idle_Periods
 
-		#######
+		
 		self.processedPktNumber = 0
 		self.droppedPktNumber = 0
 		self.buffer_size = buffer_size
@@ -62,7 +62,7 @@ class server_queue:
 				self.Server_Idle_Periods.addNumber(idle_period)
 				#print("Idle period of length {0} ended".format(idle_period))
 			
-			####
+			
 			if self.queue_len != self.buffer_size:				
 				self.processedPktNumber += 1		
 				self.queue_len += 1
@@ -128,10 +128,11 @@ class StatObject:
 def main():
 	print("Simple queue system model:mu = {0}".format(MU))
 	print ("{0:<9} {1:<9} {2:<9} {3:<9} {4:<9} {5:<9} {6:<9} {7:<9}".format(
-        "Lambda", "Count", "Min", "Max", "Mean", "Median", "Sd", "Utilization", "Processed", "Dropped", "Probability"))
+        "Lambda", "Count", "Min", "Max", "Mean", "Median", "Sd", "Utilization"))
 	random.seed(RANDOM_SEED)
 
-	for buffer_size in [10]:		#, 50]:
+	for buffer_size in [10, 50]:
+		print ("** Buffer Size: ", buffer_size, " **")
 		for arrival_rate in [0.2,0.4,0.6,0.8,0.9,0.99]:		#[0.1, 0.2, 0.5,  0.9]:
 			env = simpy.Environment()
 			Packet_Delay = StatObject()
@@ -142,7 +143,7 @@ def main():
 
 			pktLossProbability = router.droppedPktNumber/router.packet_number
 
-			print ("{0:<9.3f} {1:<9} {2:<9.3f} {3:<9.3f} {4:<9.3f} {5:<9.3f} {6:<9.3f} {7:<9.3f} {1:<9} {1:<9}".format(
+			print ("{0:<9.3f} {1:<9} {2:<9.3f} {3:<9.3f} {4:<9.3f} {5:<9.3f} {6:<9.3f} {7:<9.3f}".format(
 				round(arrival_rate, 3),
 				int(Packet_Delay.count()),
 				round(Packet_Delay.minimum(), 3),
@@ -150,9 +151,9 @@ def main():
 				round(Packet_Delay.mean(), 3),
 				round(Packet_Delay.median(), 3),
 				round(Packet_Delay.standarddeviation(), 3),
-				round(1-Server_Idle_Periods.sum()/SIM_TIME, 3)),
-				router.processedPktNumber,
-				router.droppedPktNumber,
-				pktLossProbability)
+				round(1-Server_Idle_Periods.sum()/SIM_TIME, 3)))
+			print ("Dropped: ", router.droppedPktNumber)
+			print ("Pkt Loss Probability: ", pktLossProbability)
+
 	
 if __name__ == '__main__': main()
