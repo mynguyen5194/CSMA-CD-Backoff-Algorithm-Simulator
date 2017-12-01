@@ -24,8 +24,6 @@ class server_queue:
 		self.Packet_Delay = Packet_Delay
 		self.Server_Idle_Periods = Server_Idle_Periods
 
-		
-		self.processedPktNumber = 0
 		self.droppedPktNumber = 0
 		self.buffer_size = buffer_size
 		
@@ -63,8 +61,7 @@ class server_queue:
 				#print("Idle period of length {0} ended".format(idle_period))
 			
 			
-			if self.queue_len != self.buffer_size:				
-				self.processedPktNumber += 1		
+			if self.queue_len != self.buffer_size:					
 				self.queue_len += 1
 				env.process(self.process_packet(env, new_packet))
 			else:
@@ -118,12 +115,6 @@ class StatObject:
         sum = sum/(len(self.dataset) - 1)
         return math.sqrt(sum)
 
-    def processedPktNumber(self):
-    	return self.processedPktNumber
-
-    def droppedPktNumber(self):
-    	return self.droppedPktNumber
-
 
 def main():
 	print("Simple queue system model:mu = {0}".format(MU))
@@ -153,6 +144,7 @@ def main():
 				round(Packet_Delay.standarddeviation(), 3),
 				round(1-Server_Idle_Periods.sum()/SIM_TIME, 3)))
 			print ("Dropped: ", router.droppedPktNumber)
+			print ("Received: ", router.packet_number)
 			print ("Pkt Loss Probability: ", pktLossProbability)
 
 	
