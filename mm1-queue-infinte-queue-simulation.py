@@ -12,7 +12,7 @@ MU = 1
 
 """ Queue system  """		
 class server_queue:
-	def __init__(self, env, arrival_rate, Packet_Delay, Server_Idle_Periods):
+	def __init__(self, env, arrival_rate, Packet_Delay, Server_Idle_Periods,buffer_size):
 		self.server = simpy.Resource(env, capacity = 1)
 		self.env = env
 		self.queue_len = 0
@@ -23,7 +23,10 @@ class server_queue:
 		self.arrival_rate = arrival_rate
 		self.Packet_Delay = Packet_Delay
 		self.Server_Idle_Periods = Server_Idle_Periods
-		
+		self.packetProcessed = 0
+		self.packetDropped = 0
+		self.buffer_size = buffer_size
+
 	def process_packet(self, env, packet):
 		with self.server.request() as req:
 			start = env.now
@@ -37,10 +40,10 @@ class server_queue:
 				self.flag_processing = 0
 				self.start_idle_time = env.now
 				
-	def packets_arrival(self, env):
+	def packets_arrival(self, env, B):
 		# packet arrivals 
 		
-		while True:
+		while True: 
 		     # Infinite loop for generating packets
 			yield env.timeout(random.expovariate(self.arrival_rate))
 			  # arrival time of one packet
@@ -55,8 +58,16 @@ class server_queue:
 				idle_period = env.now - self.start_idle_time
 				self.Server_Idle_Periods.addNumber(idle_period)
 				#print("Idle period of length {0} ended".format(idle_period))
-			self.queue_len += 1
-			env.process(self.process_packet(env, new_packet))
+			
+			#env.process(self.process_packet(env, new_packet))
+
+			#######
+			if self.queue_len != self.buffer_size:
+				self.packetProcessed += 1
+				self.queue_len += 1
+				env.process(self.process_packet(env, new_packet))
+			else:
+				self.packetDropped += 1
 	
 
 """ Packet class """			
@@ -105,27 +116,48 @@ class StatObject:
         sum = sum/(len(self.dataset) - 1)
         return math.sqrt(sum)
 
+    def packetProcessed(self):
+   		return self.packetProcessed
+ 
+    def packetDropped(self):
+    	return self.packetDropped
+
 
 def main():
-	print("Simple queue system model:mu = {0}".format(MU))
-	print ("{0:<9} {1:<9} {2:<9} {3:<9} {4:<9} {5:<9} {6:<9} {7:<9}".format(
-        "Lambda", "Count", "Min", "Max", "Mean", "Median", "Sd", "Utilization"))
-	random.seed(RANDOM_SEED)
-	for arrival_rate in [0.2,0.4,0.6,0.8,0.9,0.99]:		#[0.1, 0.2, 0.5,  0.9]:
-		env = simpy.Environment()
-		Packet_Delay = StatObject()
-		Server_Idle_Periods = StatObject()
-		router = server_queue(env, arrival_rate, Packet_Delay, Server_Idle_Periods)
-		env.process(router.packets_arrival(env))
-		env.run(until=SIM_TIME)
-		print ("{0:<9.3f} {1:<9} {2:<9.3f} {3:<9.3f} {4:<9.3f} {5:<9.3f} {6:<9.3f} {7:<9.3f}".format(
-			round(arrival_rate, 3),
-			int(Packet_Delay.count()),
-			round(Packet_Delay.minimum(), 3),
-			round(Packet_Delay.maximum(), 3),
-			round(Packet_Delay.mean(), 3),
-			round(Packet_Delay.median(), 3),
-			round(Packet_Delay.standarddeviation(), 3),
-			round(1-Server_Idle_Periods.sum()/SIM_TIME, 3)))
+	B = [10, 50]
+	for i in range(len(B)):
+		print("When B= ", B[i])
+		print("Simple queue system model:mu = {0}".format(MU))
+		print ("{0:<9} {1:<9} {2:<9} {3:<9} {4:<9} {5:<9} {6:<9} {7:<9} {8:<9} {9:<9} {10:<9}".format(
+	        "Lambda", "Count", "Min", "Max", "Mean", "Median", "Sd", "Utilization", "Processed","Dropped","Probability"))
+		random.seed(RANDOM_SEED)
+		
+		for arrival_rate in  [0.2, 0.4, 0.6, 0.8, 0.9, 0.99]:
+			env = simpy.Environment()
+			Packet_Delay = StatObject()
+			Server_Idle_Periods = StatObject()
+			router = server_queue(env, arrival_rate, Packet_Delay, Server_Idle_Periods, B[0])
+			env.process(router.packets_arrival(env,B[i]))
+			env.run(until=SIM_TIME)
+
+			pktLossProb = router.packetDropped / router.packet_number
+
+			print ("{0:<9.3f} {1:<9} {2:<9.3f} {3:<9.3f} {4:<9.3f} {5:<9.3f} {6:<9.3f} {7:<9.3f} {8:<9d} {9:<9d} {10:<9.3f} ".format(
+				round(arrival_rate, 3),
+				int(Packet_Delay.count()),
+				round(Packet_Delay.minimum(), 3),
+				round(Packet_Delay.maximum(), 3),
+				round(Packet_Delay.mean(), 3),
+				round(Packet_Delay.median(), 3),
+				round(Packet_Delay.standarddeviation(), 3),
+				round(1-Server_Idle_Periods.sum()/SIM_TIME, 3), 
+				router.packetProcessed, 
+				router.packetDropped, 
+				round(pktLossProb), 3))
 	
 if __name__ == '__main__': main()
+
+
+
+
+
