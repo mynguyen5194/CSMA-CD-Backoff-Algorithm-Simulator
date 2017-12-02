@@ -68,6 +68,8 @@ class server_queue:
 				env.process(self.process_packet(env, new_packet))
 			else:
 				self.packetDropped += 1
+	def getDropProb(self):
+		return (float(self.packetDropped)/self.packet_number)
 	
 
 """ Packet class """			
@@ -121,12 +123,13 @@ class StatObject:
  
     def packetDropped(self):
     	return self.packetDropped
+    #def droppedProb(self.)
 
 
 def main():
 	B = [10, 50]
 	for i in range(len(B)):
-		print("When B= ", B[i])
+		print "When B = %d" % B[i]
 		print("Simple queue system model:mu = {0}".format(MU))
 		print ("{0:<9} {1:<9} {2:<9} {3:<9} {4:<9} {5:<9} {6:<9} {7:<9} {8:<9} {9:<9} {10:<9}".format(
 	        "Lambda", "Count", "Min", "Max", "Mean", "Median", "Sd", "Utilization", "Processed","Dropped","Probability"))
@@ -142,7 +145,7 @@ def main():
 
 			pktLossProb = router.packetDropped / router.packet_number
 
-			print ("{0:<9.3f} {1:<9} {2:<9.3f} {3:<9.3f} {4:<9.3f} {5:<9.3f} {6:<9.3f} {7:<9.3f} {8:<9d} {9:<9d} {10:<9.3f} ".format(
+			print ("{0:<9.3f} {1:<9} {2:<9.3f} {3:<9.3f} {4:<9.3f} {5:<9.3f} {6:<9.3f} {7:<12.3f} {8:<9d} {9:<9d} {10:9.7f} ".format(
 				round(arrival_rate, 3),
 				int(Packet_Delay.count()),
 				round(Packet_Delay.minimum(), 3),
@@ -153,9 +156,13 @@ def main():
 				round(1-Server_Idle_Periods.sum()/SIM_TIME, 3), 
 				router.packetProcessed, 
 				router.packetDropped, 
-				round(pktLossProb), 3))
+				router.getDropProb()))
+			
 	
 if __name__ == '__main__': main()
+
+
+
 
 
 
