@@ -59,9 +59,6 @@ class server_queue:
 				self.Server_Idle_Periods.addNumber(idle_period)
 				#print("Idle period of length {0} ended".format(idle_period))
 			
-			#env.process(self.process_packet(env, new_packet))
-
-			#######
 			if self.queue_len != self.buffer_size:
 				self.packetProcessed += 1
 				self.queue_len += 1
@@ -129,7 +126,7 @@ class StatObject:
 def main():
 	B = [10, 50]
 	for i in range(len(B)):
-		print "When B = %d" % B[i]
+		print("When B = %d" % B[i])
 		print("Simple queue system model:mu = {0}".format(MU))
 		print ("{0:<9} {1:<9} {2:<9} {3:<9} {4:<9} {5:<9} {6:<9} {7:<9} {8:<9} {9:<9} {10:<9}".format(
 	        "Lambda", "Count", "Min", "Max", "Mean", "Median", "Sd", "Utilization", "Processed","Dropped","Probability"))
@@ -160,11 +157,3 @@ def main():
 			
 	
 if __name__ == '__main__': main()
-
-
-
-
-
-
-
-

@@ -13,10 +13,8 @@ TOTAL_SUCCESSES = 0
 TOTAL_COLLISIONS = 0
 
 def Delayed_Slots(numCollisions):
-	K = 0
-	if numCollisions <= 10:	#max is 10
-		K = numCollisions
-	delaySlots = random.randint(0,math.pow(2,K))
+	K = min(numCollisions, 10)
+	delaySlots = random.randint(0, math.pow(2,K))
 	return delaySlots
 
 class cdma(object):
@@ -54,6 +52,9 @@ class backOffAlgorithm:
 		self.env = env
 		self.nodes = nodes
 		self.numNodes = numNodes
+
+	
+
 	def process_packet(self, env):
 		global TOTAL_SLOTS
 		global TOTAL_SUCCESSES
@@ -92,6 +93,7 @@ def main():
 	
 	arrivalRateList = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09]
 	numNodes = 10
+
 	for rate in  arrivalRateList:
 		env = simpy.Environment()
 		c = cdma(env)
@@ -108,6 +110,6 @@ def main():
 	
 		env.run(until=SIM_TIME)
 		
-		print "Throughput for lambda = %f is %f" % (rate,c.getThroughPut())
+		print ('Throughput for lambda = %f is %f' % (rate,c.getThroughPut()))
 		
 if __name__ == '__main__': main()
