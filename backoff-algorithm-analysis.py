@@ -7,17 +7,23 @@ import math
 RANDOM_SEED = 29
 SIM_TIME = 1000000
 MU = 1
+Ts = 1
 
 TOTAL_SLOTS = 0
 TOTAL_SUCCESSES = 0
 TOTAL_COLLISIONS = 0
 
 def Delayed_Slots(numCollisions):
+	# Uncomment line 17 & 18 if running Linear Backoff 
+	# K = min(numCollisions, 2014)
+	# delaySlots = random.randint(0, K)
+
+	# Uncomment line 22 & 23 if running Exponential Backoff 
 	K = min(numCollisions, 10)
 	delaySlots = random.randint(0, math.pow(2,K))
 	return delaySlots
 
-class cdma(object):
+class csma(object):
 	global TOTAL_SLOTS
 	global TOTAL_SUCCESSES
 	global TOTAL_COLLISIONS
@@ -30,9 +36,7 @@ class cdma(object):
 
 
 class Node:
-
 	def __init__ (self, env, rate):
-		
 		self.N = 0
 		self.arrivalRate = rate
 		self.packet_number = 0
@@ -47,13 +51,10 @@ class Node:
 
 
 class backOffAlgorithm:
-	
 	def __init__ (self, env, nodes, numNodes):
 		self.env = env
 		self.nodes = nodes
 		self.numNodes = numNodes
-
-	
 
 	def process_packet(self, env):
 		global TOTAL_SLOTS
@@ -61,13 +62,14 @@ class backOffAlgorithm:
 		global TOTAL_COLLISIONS
 
 		while True:
-			yield env.timeout(1) #This is the time slot
+			yield env.timeout(Ts) #This is the time slot
 
 			duplicates = []
 			
 			for i in range(0,self.numNodes):
 				if self.nodes[i].slotNum == TOTAL_SLOTS:
 					duplicates.append(i)
+
 			#Packet successfully transmits
 			if len(duplicates) == 1:
 				x = duplicates[0]
@@ -96,7 +98,7 @@ def main():
 
 	for rate in  arrivalRateList:
 		env = simpy.Environment()
-		c = cdma(env)
+		c = csma(env)
 
 		nodes = []
 		for i in range(0,numNodes):

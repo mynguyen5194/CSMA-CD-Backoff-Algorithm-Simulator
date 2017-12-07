@@ -7,8 +7,6 @@ import math
 RANDOM_SEED = 29
 SIM_TIME = 1000000
 MU = 1
-# BUFFER_SIZE = 10
-
 
 """ Queue system  """		
 class server_queue:
