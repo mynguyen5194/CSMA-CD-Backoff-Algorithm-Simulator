@@ -1,6 +1,12 @@
 # This is a simpy based  simulation of a M/M/1 queue system
-
+# ***********************
+# My Nguyen: 914329026
 # Jasmin Adzic: 999883011
+# ***********************
+
+# **** INSTRUCTION ****
+# To execute the program run the following:
+# python3 finite-buffer.py
 
 import random
 import simpy

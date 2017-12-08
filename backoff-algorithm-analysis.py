@@ -1,6 +1,13 @@
 # This is a simpy based  simulation of a M/M/1 queue system
-
+# ***********************
+# My Nguyen: 914329026
 # Jasmin Adzic: 999883011
+# ***********************
+
+# **** INSTRUCTION ****
+# To execute the program for both exponential and linear backoff algorithm
+# run the following:
+# python3 backoff-algorithm-analysis.py
 
 import random
 import simpy
@@ -143,10 +150,6 @@ class Server:
 
 			# Iterate over each queue to see if they have pkt to transmit
 			for q in self.queues:
-				# if q.queue_len > 0 and q.slot_number < self.current_slot:
-				# 	q.slot_number = self.current_slot+1
-				# if q.slot_number == self.current_slot and q.queue_len >= 1:
-				# 	transmittion.append(q)
 				if q.queue_len > 0:
 					# Only transmit if slot number of q is the same as current slot
 					if q.slot_number == self.current_slot:
