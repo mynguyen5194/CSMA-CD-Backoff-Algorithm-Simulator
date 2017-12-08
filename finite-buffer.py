@@ -1,5 +1,7 @@
 # This is a simpy based  simulation of a M/M/1 queue system
 
+# Jasmin Adzic: 999883011
+
 import random
 import simpy
 import math
@@ -132,7 +134,7 @@ def main():
 			env.process(router.packets_arrival(env))
 			env.run(until=SIM_TIME)
 
-			pktLossProbability = router.droppedPktNumber/router.packet_number
+			pktLossProbability = float(router.droppedPktNumber)/router.packet_number
 
 			# print ("{0:<9.3f} {1:<9} {2:<9.3f} {3:<9.3f} {4:<9.3f} {5:<9.3f} {6:<9.3f} {7:<9.3f}".format(
 			print ("{0:<9.3f} {1:<9} {2:<9.3f} {3:<9.3f} {4:<9.3f} {5:<9.3f} {6:<9.3f} {7:<12.3f} {8:<9d} {9:<9d} {10:9.7f} ".format(

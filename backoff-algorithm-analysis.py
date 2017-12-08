@@ -1,5 +1,7 @@
 # This is a simpy based  simulation of a M/M/1 queue system
 
+# Jasmin Adzic: 999883011
+
 import random
 import simpy
 import math
@@ -200,7 +202,7 @@ def simulation(arrival_rates, algorithm):
 		env.process(server.backoff_algorithm(env, algorithm))
 		env.run(until=SIM_TIME)
 
-		throughPut = server.success_number/server.current_slot
+		throughPut = float(server.success_number)/server.current_slot
 	
 		print('Lamda: ', lamda, '	Success: ', server.success_number, '	collisions: ', server.collision_number, '	Slots: ', server.current_slot, '	throughPut: ', throughPut)
 
